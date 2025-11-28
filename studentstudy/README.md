@@ -2,6 +2,18 @@
 
 A homework reminder and grade tracking web application for high school and college students.
 
+## 🚀 Quick Start with StackBlitz
+
+**No installation needed!** Import this repo directly into StackBlitz:
+
+1. Go to [stackblitz.com](https://stackblitz.com)
+2. Click "Import from GitHub" and paste this repo URL
+3. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
+4. Update the `.env` file in StackBlitz with your Firebase credentials
+5. The app runs automatically in your browser!
+
+---
+
 ## Features
 
 - 📝 **Assignment Management** - Create, track, and manage daily homework and long-term projects
