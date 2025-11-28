@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { 
+  getClassById, 
+  updateClass, 
+  getAssignmentsByClass,
+  getUsers
+} from '../services/localStorage'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/common/Button'
 import Input from '../components/common/Input'
@@ -24,44 +28,30 @@ const ClassDetails = () => {
   const [adding, setAdding] = useState(false)
 
   useEffect(() => {
-    const fetchClassData = async () => {
+    const fetchClassData = () => {
       try {
         // Fetch class
-        const classDoc = await getDoc(doc(db, 'classes', id))
-        if (!classDoc.exists()) {
+        const data = getClassById(id)
+        if (!data) {
           toast.error('Class not found')
           navigate('/classes')
           return
         }
         
-        const data = { id: classDoc.id, ...classDoc.data() }
         setClassData(data)
 
         // Fetch students
         if (data.studentIds?.length > 0) {
-          const studentsData = []
-          for (const studentId of data.studentIds) {
-            const studentDoc = await getDocs(
-              query(collection(db, 'users'), where('schoolId', '==', studentId))
-            )
-            if (!studentDoc.empty) {
-              studentsData.push({ id: studentDoc.docs[0].id, ...studentDoc.docs[0].data() })
-            }
-          }
+          const allUsers = getUsers()
+          const studentsData = allUsers.filter(u => 
+            data.studentIds.includes(u.schoolId) && u.role === 'student'
+          )
           setStudents(studentsData)
         }
 
         // Fetch class assignments
-        const assignmentsQuery = query(
-          collection(db, 'assignments'),
-          where('classId', '==', id)
-        )
-        const assignmentsSnapshot = await getDocs(assignmentsQuery)
-        const assignmentsData = assignmentsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-        setAssignments(assignmentsData)
+        const classAssignments = getAssignmentsByClass(id)
+        setAssignments(classAssignments)
 
       } catch (error) {
         console.error('Error fetching class:', error)
@@ -74,7 +64,7 @@ const ClassDetails = () => {
     fetchClassData()
   }, [id, navigate])
 
-  const handleAddStudent = async () => {
+  const handleAddStudent = () => {
     if (!studentId.trim()) {
       toast.error('Please enter a student ID')
       return
@@ -83,21 +73,16 @@ const ClassDetails = () => {
     setAdding(true)
     try {
       // Find student by school ID
-      const studentQuery = query(
-        collection(db, 'users'),
-        where('schoolId', '==', studentId.trim()),
-        where('role', '==', 'student')
+      const allUsers = getUsers()
+      const studentData = allUsers.find(u => 
+        u.schoolId === studentId.trim() && u.role === 'student'
       )
-      const studentSnapshot = await getDocs(studentQuery)
 
-      if (studentSnapshot.empty) {
+      if (!studentData) {
         toast.error('Student not found with that ID')
         setAdding(false)
         return
       }
-
-      const studentData = studentSnapshot.docs[0]
-      const studentUserId = studentData.id
 
       // Check if already in class
       if (classData.studentIds?.includes(studentId.trim())) {
@@ -108,22 +93,11 @@ const ClassDetails = () => {
 
       // Add student to class
       const updatedStudentIds = [...(classData.studentIds || []), studentId.trim()]
-      await updateDoc(doc(db, 'classes', id), {
-        studentIds: updatedStudentIds,
-        updatedAt: new Date().toISOString()
-      })
-
-      // Update student's classes array
-      const studentUserData = studentData.data()
-      const updatedClasses = [...(studentUserData.classes || []), id]
-      await updateDoc(doc(db, 'users', studentUserId), {
-        classes: updatedClasses,
-        updatedAt: new Date().toISOString()
-      })
+      updateClass(id, { studentIds: updatedStudentIds })
 
       // Update local state
       setClassData(prev => ({ ...prev, studentIds: updatedStudentIds }))
-      setStudents(prev => [...prev, { id: studentUserId, ...studentUserData }])
+      setStudents(prev => [...prev, studentData])
       
       toast.success('Student added to class!')
       setAddStudentModal(false)
@@ -136,24 +110,11 @@ const ClassDetails = () => {
     }
   }
 
-  const handleRemoveStudent = async (studentSchoolId, studentUserId) => {
+  const handleRemoveStudent = (studentSchoolId, studentUserId) => {
     try {
       // Remove from class
-      const updatedStudentIds = classData.studentIds.filter(id => id !== studentSchoolId)
-      await updateDoc(doc(db, 'classes', id), {
-        studentIds: updatedStudentIds,
-        updatedAt: new Date().toISOString()
-      })
-
-      // Update student's classes array
-      const studentDoc = await getDoc(doc(db, 'users', studentUserId))
-      if (studentDoc.exists()) {
-        const updatedClasses = (studentDoc.data().classes || []).filter(c => c !== id)
-        await updateDoc(doc(db, 'users', studentUserId), {
-          classes: updatedClasses,
-          updatedAt: new Date().toISOString()
-        })
-      }
+      const updatedStudentIds = classData.studentIds.filter(sid => sid !== studentSchoolId)
+      updateClass(id, { studentIds: updatedStudentIds })
 
       // Update local state
       setClassData(prev => ({ ...prev, studentIds: updatedStudentIds }))

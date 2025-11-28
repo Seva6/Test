@@ -5,11 +5,6 @@ node_modules/
 dist/
 build/
 
-# Environment variables (uncomment for production)
-# .env
-# .env.local
-# .env.*.local
-
 # IDE
 .vscode/*
 !.vscode/extensions.json

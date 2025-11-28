@@ -8,9 +8,9 @@ A homework reminder and grade tracking web application for high school and colle
 
 1. Go to [stackblitz.com](https://stackblitz.com)
 2. Click "Import from GitHub" and paste this repo URL
-3. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
-4. Update the `.env` file in StackBlitz with your Firebase credentials
-5. The app runs automatically in your browser!
+3. The app runs automatically in your browser! 🎉
+
+**That's it!** No accounts, no setup, no configuration needed.
 
 ---
 
@@ -23,24 +23,26 @@ A homework reminder and grade tracking web application for high school and colle
 - 👥 **Class Management** - Teachers can create classes and add students
 - 🌙 **Dark Mode** - Easy on the eyes with light and dark theme support
 - 📱 **Responsive Design** - Works seamlessly on desktop and mobile devices
+- 💾 **Local Storage** - All your data saves automatically in your browser
 
 ## Tech Stack
 
 - **Frontend**: React 18, React Router v6
 - **Styling**: Tailwind CSS
-- **Backend/Database**: Firebase (Authentication + Firestore)
+- **Storage**: Browser Local Storage (no server needed!)
 - **Build Tool**: Vite
 - **Icons**: Lucide React
 - **Date Handling**: date-fns
 
 ## Getting Started
 
-### Prerequisites
+### Option 1: StackBlitz (Easiest - No Installation!)
 
-- Node.js 18+ installed
-- A Firebase project
+1. Go to [stackblitz.com](https://stackblitz.com)
+2. Import this GitHub repo
+3. Done! Start using the app immediately
 
-### Installation
+### Option 2: Local Development
 
 1. **Clone or download the project**
 
@@ -50,58 +52,12 @@ A homework reminder and grade tracking web application for high school and colle
    npm install
    ```
 
-3. **Set up Firebase**
-   - Go to [Firebase Console](https://console.firebase.google.com/)
-   - Create a new project
-   - Enable **Authentication** with Email/Password provider
-   - Create a **Firestore Database**
-   - Go to Project Settings > Your Apps > Add Web App
-   - Copy your Firebase configuration
-
-4. **Configure environment variables**
-   - Copy `.env.example` to `.env`
-   - Fill in your Firebase configuration:
-   ```env
-   VITE_FIREBASE_API_KEY=your_api_key
-   VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your_project_id
-   VITE_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
-   VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-   VITE_FIREBASE_APP_ID=your_app_id
-   ```
-
-5. **Set up Firestore Security Rules**
-   In Firebase Console > Firestore > Rules, paste:
-   ```javascript
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{database}/documents {
-       match /users/{userId} {
-         allow read, write: if request.auth != null && request.auth.uid == userId;
-       }
-       match /classes/{classId} {
-         allow read: if request.auth != null;
-         allow write: if request.auth != null;
-       }
-       match /assignments/{assignmentId} {
-         allow read, write: if request.auth != null;
-       }
-       match /grades/{gradeId} {
-         allow read, write: if request.auth != null;
-       }
-       match /notifications/{notificationId} {
-         allow read, write: if request.auth != null;
-       }
-     }
-   }
-   ```
-
-6. **Start the development server**
+3. **Start the development server**
    ```bash
    npm run dev
    ```
 
-7. **Open your browser**
+4. **Open your browser**
    Navigate to `http://localhost:5173`
 
 ## Project Structure
@@ -117,12 +73,11 @@ studentstudy/
 │   │   └── assignments/ # Assignment-specific components
 │   ├── context/         # React contexts (Auth, Theme, Notifications)
 │   ├── pages/           # Page components
-│   ├── services/        # Firebase configuration
+│   ├── services/        # Local storage service
 │   ├── utils/           # Utility functions
 │   ├── App.jsx          # Main app component
 │   ├── main.jsx         # Entry point
 │   └── index.css        # Global styles
-├── .env.example         # Environment variables template
 ├── package.json
 ├── tailwind.config.js
 └── vite.config.js
@@ -143,21 +98,24 @@ studentstudy/
 - Post assignments to entire classes
 - View student homework status
 
+## How Data is Stored
+
+All your data is stored locally in your browser using localStorage. This means:
+- ✅ No account creation with external services needed
+- ✅ Works offline after first load
+- ✅ Your data stays private on your device
+- ⚠️ Data is specific to the browser/device you use
+- ⚠️ Clearing browser data will delete your assignments
+
 ## Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 
-## Screenshots
+## Demo Account
 
-The app features:
-- Clean, modern dashboard with stats
-- Assignment list with status toggles
-- Calendar view with color-coded events
-- Grade tracking with subject averages
-- Class management for teachers
-- Full dark mode support
+When you register a new account, demo data is automatically added so you can see how the app works!
 
 ## License
 

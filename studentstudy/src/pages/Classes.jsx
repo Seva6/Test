@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Users } from 'lucide-react'
-import { collection, query, where, onSnapshot, or } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { getClassesByTeacher, getClassesByStudent } from '../services/localStorage'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/common/Button'
 import Card from '../components/common/Card'
@@ -17,33 +16,15 @@ const Classes = () => {
   useEffect(() => {
     if (!user) return
 
-    // Different queries for teachers and students
-    let q
+    // Load classes based on role
+    let userClasses
     if (isTeacher) {
-      q = query(
-        collection(db, 'classes'),
-        where('teacherId', '==', user.uid)
-      )
+      userClasses = getClassesByTeacher(user.id)
     } else {
-      q = query(
-        collection(db, 'classes'),
-        where('studentIds', 'array-contains', user.uid)
-      )
+      userClasses = getClassesByStudent(user.id)
     }
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-      setClasses(data)
-      setLoading(false)
-    }, (error) => {
-      console.error('Error fetching classes:', error)
-      setLoading(false)
-    })
-
-    return () => unsubscribe()
+    setClasses(userClasses)
+    setLoading(false)
   }, [user, isTeacher])
 
   // Predefined colors for classes

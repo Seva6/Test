@@ -9,8 +9,7 @@ import {
   AlertTriangle,
   ChevronRight 
 } from 'lucide-react'
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { getAssignmentsByUser, getGradesByUser } from '../services/localStorage'
 import { useAuth } from '../context/AuthContext'
 import Card from '../components/common/Card'
 import Button from '../components/common/Button'
@@ -28,47 +27,19 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user) return
 
-    // Fetch assignments
-    const assignmentsQuery = query(
-      collection(db, 'assignments'),
-      where('studentId', '==', user.uid),
-      orderBy('dueDate', 'asc')
-    )
+    // Load assignments from localStorage
+    const userAssignments = getAssignmentsByUser(user.id)
+    // Sort by due date
+    userAssignments.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+    setAssignments(userAssignments)
 
-    const unsubAssignments = onSnapshot(assignmentsQuery, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-      setAssignments(data)
-      setLoading(false)
-    }, (error) => {
-      console.error('Error fetching assignments:', error)
-      setLoading(false)
-    })
-
-    // Fetch grades for students
+    // Load grades for students
     if (!isTeacher) {
-      const gradesQuery = query(
-        collection(db, 'grades'),
-        where('studentId', '==', user.uid)
-      )
-
-      const unsubGrades = onSnapshot(gradesQuery, (snapshot) => {
-        const data = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-        setGrades(data)
-      })
-
-      return () => {
-        unsubAssignments()
-        unsubGrades()
-      }
+      const userGrades = getGradesByUser(user.id)
+      setGrades(userGrades)
     }
 
-    return () => unsubAssignments()
+    setLoading(false)
   }, [user, isTeacher])
 
   // Calculate stats

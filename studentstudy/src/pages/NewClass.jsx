@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { collection, addDoc } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { createClass } from '../services/localStorage'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/common/Button'
 import Input from '../components/common/Input'
@@ -68,16 +67,13 @@ const NewClass = () => {
 
     setLoading(true)
     try {
-      await addDoc(collection(db, 'classes'), {
+      createClass({
         name: formData.name,
         subject: formData.subject,
         description: formData.description,
         color: formData.color,
-        teacherId: user.uid,
-        teacherName: userData.fullName,
-        studentIds: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        teacherId: user.id,
+        teacherName: userData.fullName
       })
 
       toast.success('Class created!')

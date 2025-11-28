@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, TrendingUp, TrendingDown } from 'lucide-react'
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { getGradesByUser } from '../services/localStorage'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/common/Button'
 import Card from '../components/common/Card'
@@ -18,25 +17,12 @@ const Grades = () => {
   useEffect(() => {
     if (!user) return
 
-    const q = query(
-      collection(db, 'grades'),
-      where('studentId', '==', user.uid),
-      orderBy('dateReceived', 'desc')
-    )
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-      setGrades(data)
-      setLoading(false)
-    }, (error) => {
-      console.error('Error fetching grades:', error)
-      setLoading(false)
-    })
-
-    return () => unsubscribe()
+    // Load grades from localStorage
+    const userGrades = getGradesByUser(user.id)
+    // Sort by date received (newest first)
+    userGrades.sort((a, b) => new Date(b.dateReceived) - new Date(a.dateReceived))
+    setGrades(userGrades)
+    setLoading(false)
   }, [user])
 
   // Calculate stats

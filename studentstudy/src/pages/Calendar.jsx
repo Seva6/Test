@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { collection, query, where, onSnapshot } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { getAssignmentsByUser } from '../services/localStorage'
 import { useAuth } from '../context/AuthContext'
 import Card from '../components/common/Card'
 import Badge from '../components/common/Badge'
@@ -31,24 +30,10 @@ const Calendar = () => {
   useEffect(() => {
     if (!user) return
 
-    const q = query(
-      collection(db, 'assignments'),
-      where('studentId', '==', user.uid)
-    )
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-      setAssignments(data)
-      setLoading(false)
-    }, (error) => {
-      console.error('Error fetching assignments:', error)
-      setLoading(false)
-    })
-
-    return () => unsubscribe()
+    // Load assignments from localStorage
+    const userAssignments = getAssignmentsByUser(user.id)
+    setAssignments(userAssignments)
+    setLoading(false)
   }, [user])
 
   // Generate calendar days

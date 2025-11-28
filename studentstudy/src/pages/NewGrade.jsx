@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { createGrade, getClassesByStudent } from '../services/localStorage'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/common/Button'
 import Input from '../components/common/Input'
@@ -27,27 +26,15 @@ const NewGrade = () => {
 
   // Fetch user's classes
   useEffect(() => {
-    const fetchClasses = async () => {
-      if (!user) return
-      
-      try {
-        const q = query(
-          collection(db, 'classes'),
-          where('studentIds', 'array-contains', user.uid)
-        )
-        const snapshot = await getDocs(q)
-        const classData = snapshot.docs.map(doc => ({
-          value: doc.id,
-          label: doc.data().name,
-          ...doc.data()
-        }))
-        setClasses(classData)
-      } catch (error) {
-        console.error('Error fetching classes:', error)
-      }
-    }
+    if (!user) return
     
-    fetchClasses()
+    const userClasses = getClassesByStudent(user.id)
+    const classOptions = userClasses.map(c => ({
+      value: c.id,
+      label: c.name,
+      ...c
+    }))
+    setClasses(classOptions)
   }, [user])
 
   const validateForm = () => {
@@ -75,16 +62,14 @@ const NewGrade = () => {
     try {
       const selectedClass = classes.find(c => c.value === formData.classId)
       
-      await addDoc(collection(db, 'grades'), {
-        studentId: user.uid,
+      createGrade({
+        studentId: user.id,
         assignmentName: formData.assignmentName,
         classId: formData.classId || null,
         className: selectedClass?.label || 'General',
         grade: parseFloat(formData.grade),
         dateReceived: new Date(formData.dateReceived).toISOString(),
-        notes: formData.notes,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        notes: formData.notes
       })
 
       toast.success('Grade added!')

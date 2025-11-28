@@ -1,17 +1,12 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  onSnapshot,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  writeBatch
-} from 'firebase/firestore'
-import { db } from '../services/firebase'
+import {
+  getNotificationsByUser,
+  createNotification as createNotificationStorage,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification as deleteNotificationStorage,
+  clearAllNotifications
+} from '../services/localStorage'
 import { useAuth } from './AuthContext'
 
 const NotificationContext = createContext({})
@@ -24,8 +19,8 @@ export function NotificationProvider({ children }) {
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
-  // Subscribe to notifications
-  useEffect(() => {
+  // Load notifications when user changes
+  const loadNotifications = useCallback(() => {
     if (!user) {
       setNotifications([])
       setUnreadCount(0)
@@ -33,74 +28,57 @@ export function NotificationProvider({ children }) {
       return
     }
 
-    const q = query(
-      collection(db, 'notifications'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
-    )
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const notifs = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-      setNotifications(notifs)
-      setUnreadCount(notifs.filter(n => !n.isRead).length)
-      setLoading(false)
-    })
-
-    return unsubscribe
+    const userNotifications = getNotificationsByUser(user.id)
+    setNotifications(userNotifications)
+    setUnreadCount(userNotifications.filter(n => !n.isRead).length)
+    setLoading(false)
   }, [user])
 
+  useEffect(() => {
+    loadNotifications()
+  }, [loadNotifications])
+
   // Create a notification
-  const createNotification = useCallback(async (data) => {
+  const createNotification = useCallback((data) => {
     if (!user) return
 
-    await addDoc(collection(db, 'notifications'), {
-      userId: user.uid,
+    createNotificationStorage({
+      userId: user.id,
       type: data.type || 'reminder',
       title: data.title,
       message: data.message,
       assignmentId: data.assignmentId || null,
-      isRead: false,
-      urgency: data.urgency || 'low',
-      createdAt: new Date().toISOString()
+      urgency: data.urgency || 'low'
     })
-  }, [user])
+
+    loadNotifications()
+  }, [user, loadNotifications])
 
   // Mark notification as read
-  const markAsRead = useCallback(async (notificationId) => {
-    await updateDoc(doc(db, 'notifications', notificationId), {
-      isRead: true
-    })
-  }, [])
+  const markAsRead = useCallback((notificationId) => {
+    markNotificationAsRead(notificationId)
+    loadNotifications()
+  }, [loadNotifications])
 
   // Mark all as read
-  const markAllAsRead = useCallback(async () => {
-    if (!user || notifications.length === 0) return
-
-    const batch = writeBatch(db)
-    notifications.filter(n => !n.isRead).forEach(n => {
-      batch.update(doc(db, 'notifications', n.id), { isRead: true })
-    })
-    await batch.commit()
-  }, [user, notifications])
+  const markAllAsRead = useCallback(() => {
+    if (!user) return
+    markAllNotificationsAsRead(user.id)
+    loadNotifications()
+  }, [user, loadNotifications])
 
   // Delete notification
-  const deleteNotification = useCallback(async (notificationId) => {
-    await deleteDoc(doc(db, 'notifications', notificationId))
-  }, [])
+  const deleteNotification = useCallback((notificationId) => {
+    deleteNotificationStorage(notificationId)
+    loadNotifications()
+  }, [loadNotifications])
 
   // Clear all notifications
-  const clearAll = useCallback(async () => {
-    if (!user || notifications.length === 0) return
-
-    const batch = writeBatch(db)
-    notifications.forEach(n => {
-      batch.delete(doc(db, 'notifications', n.id))
-    })
-    await batch.commit()
-  }, [user, notifications])
+  const clearAll = useCallback(() => {
+    if (!user) return
+    clearAllNotifications(user.id)
+    loadNotifications()
+  }, [user, loadNotifications])
 
   const value = {
     notifications,

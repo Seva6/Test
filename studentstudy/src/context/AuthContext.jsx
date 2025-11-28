@@ -1,12 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
-} from 'firebase/auth'
-import { doc, setDoc, getDoc } from 'firebase/firestore'
-import { auth, db } from '../services/firebase'
+import {
+  getUserByEmail,
+  createUser,
+  updateUser,
+  getCurrentUser,
+  setCurrentUser,
+  clearCurrentUser,
+  seedDemoData
+} from '../services/localStorage'
 
 const AuthContext = createContext({})
 
@@ -17,79 +18,76 @@ export function AuthProvider({ children }) {
   const [userData, setUserData] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // Check for existing session on mount
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser)
-        // Fetch user data from Firestore
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
-        if (userDoc.exists()) {
-          setUserData(userDoc.data())
-        }
-      } else {
-        setUser(null)
-        setUserData(null)
-      }
-      setLoading(false)
-    })
-
-    return unsubscribe
+    const savedUser = getCurrentUser()
+    if (savedUser) {
+      setUser(savedUser)
+      setUserData(savedUser)
+    }
+    setLoading(false)
   }, [])
 
   const register = async (email, password, fullName, schoolId, role) => {
-    const { user: newUser } = await createUserWithEmailAndPassword(auth, email, password)
-    
-    // Create user document in Firestore
-    const userDocData = {
-      id: newUser.uid,
+    // Check if email already exists
+    const existingUser = getUserByEmail(email)
+    if (existingUser) {
+      throw new Error('An account with this email already exists')
+    }
+
+    // Create new user
+    const newUser = createUser({
       email,
+      password,
       fullName,
       schoolId,
-      role,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      settings: {
-        darkMode: false,
-        notificationsEnabled: true
-      },
-      classes: []
-    }
-    
-    await setDoc(doc(db, 'users', newUser.uid), userDocData)
-    setUserData(userDocData)
-    
+      role
+    })
+
+    // Add demo data for new users
+    seedDemoData(newUser.id, role)
+
+    // Set as current user
+    setCurrentUser(newUser)
+    setUser(newUser)
+    setUserData(newUser)
+
     return newUser
   }
 
   const login = async (email, password) => {
-    const { user: loggedInUser } = await signInWithEmailAndPassword(auth, email, password)
+    const foundUser = getUserByEmail(email)
     
-    // Fetch user data
-    const userDoc = await getDoc(doc(db, 'users', loggedInUser.uid))
-    if (userDoc.exists()) {
-      setUserData(userDoc.data())
+    if (!foundUser) {
+      throw new Error('No account found with this email')
     }
-    
-    return loggedInUser
+
+    if (foundUser.password !== password) {
+      throw new Error('Incorrect password')
+    }
+
+    // Set as current user
+    setCurrentUser(foundUser)
+    setUser(foundUser)
+    setUserData(foundUser)
+
+    return foundUser
   }
 
   const logout = async () => {
-    await signOut(auth)
+    clearCurrentUser()
     setUser(null)
     setUserData(null)
   }
 
   const updateUserData = async (updates) => {
     if (!user) return
-    
-    const updatedData = {
-      ...userData,
-      ...updates,
-      updatedAt: new Date().toISOString()
+
+    const updatedUser = updateUser(user.id, updates)
+    if (updatedUser) {
+      setCurrentUser(updatedUser)
+      setUserData(updatedUser)
     }
-    
-    await setDoc(doc(db, 'users', user.uid), updatedData, { merge: true })
-    setUserData(updatedData)
   }
 
   const value = {

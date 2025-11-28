@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore'
-import { db } from '../services/firebase'
+import { getAssignmentById, updateAssignment, deleteAssignment } from '../services/localStorage'
 import { useAuth } from '../context/AuthContext'
 import Button from '../components/common/Button'
 import Card from '../components/common/Card'
@@ -28,13 +27,12 @@ const AssignmentDetails = () => {
   const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
-    const fetchAssignment = async () => {
+    const fetchAssignment = () => {
       try {
-        const docRef = doc(db, 'assignments', id)
-        const docSnap = await getDoc(docRef)
+        const data = getAssignmentById(id)
         
-        if (docSnap.exists()) {
-          setAssignment({ id: docSnap.id, ...docSnap.data() })
+        if (data) {
+          setAssignment(data)
         } else {
           toast.error('Assignment not found')
           navigate('/assignments')
@@ -50,12 +48,9 @@ const AssignmentDetails = () => {
     fetchAssignment()
   }, [id, navigate])
 
-  const handleStatusChange = async (newStatus) => {
+  const handleStatusChange = (newStatus) => {
     try {
-      await updateDoc(doc(db, 'assignments', id), {
-        status: newStatus,
-        updatedAt: new Date().toISOString()
-      })
+      updateAssignment(id, { status: newStatus })
       setAssignment(prev => ({ ...prev, status: newStatus }))
       toast.success(`Status updated to ${statusConfig[newStatus].label}`)
     } catch (error) {
@@ -64,10 +59,10 @@ const AssignmentDetails = () => {
     }
   }
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     setDeleting(true)
     try {
-      await deleteDoc(doc(db, 'assignments', id))
+      deleteAssignment(id)
       toast.success('Assignment deleted')
       navigate('/assignments')
     } catch (error) {
@@ -78,16 +73,13 @@ const AssignmentDetails = () => {
     }
   }
 
-  const handleMilestoneStatusChange = async (milestoneId, newStatus) => {
+  const handleMilestoneStatusChange = (milestoneId, newStatus) => {
     const updatedMilestones = assignment.milestones.map(m =>
       m.id === milestoneId ? { ...m, status: newStatus } : m
     )
 
     try {
-      await updateDoc(doc(db, 'assignments', id), {
-        milestones: updatedMilestones,
-        updatedAt: new Date().toISOString()
-      })
+      updateAssignment(id, { milestones: updatedMilestones })
       setAssignment(prev => ({ ...prev, milestones: updatedMilestones }))
       toast.success('Milestone updated')
     } catch (error) {
