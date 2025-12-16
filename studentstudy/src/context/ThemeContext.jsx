@@ -15,6 +15,14 @@ export function ThemeProvider({ children }) {
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
 
+  const [christmasMode, setChristmasMode] = useState(() => {
+    const saved = localStorage.getItem('christmasMode')
+    if (saved !== null) {
+      return JSON.parse(saved)
+    }
+    return false
+  })
+
   useEffect(() => {
     // Apply dark mode class to document
     if (darkMode) {
@@ -36,14 +44,32 @@ export function ThemeProvider({ children }) {
     )
   }, [darkMode])
 
+  useEffect(() => {
+    // Apply christmas mode class to document
+    if (christmasMode) {
+      document.documentElement.classList.add('christmas')
+    } else {
+      document.documentElement.classList.remove('christmas')
+    }
+    // Save preference
+    localStorage.setItem('christmasMode', JSON.stringify(christmasMode))
+  }, [christmasMode])
+
   const toggleDarkMode = () => {
     setDarkMode(prev => !prev)
+  }
+
+  const toggleChristmasMode = () => {
+    setChristmasMode(prev => !prev)
   }
 
   const value = {
     darkMode,
     setDarkMode,
-    toggleDarkMode
+    toggleDarkMode,
+    christmasMode,
+    setChristmasMode,
+    toggleChristmasMode
   }
 
   return (

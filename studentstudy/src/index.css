@@ -98,3 +98,171 @@ body {
 .transition-theme {
   @apply transition-colors duration-200;
 }
+
+/* ===== CHRISTMAS THEME ===== */
+
+/* Christmas color overrides */
+.christmas {
+  --christmas-red: #c41e3a;
+  --christmas-green: #228b22;
+  --christmas-gold: #ffd700;
+  --christmas-snow: #fffafa;
+}
+
+/* Christmas background */
+.christmas body,
+.christmas .bg-gray-50 {
+  background: linear-gradient(180deg, #1a472a 0%, #2d5a3d 50%, #1a472a 100%) !important;
+}
+
+.christmas.dark body,
+.christmas.dark .bg-gray-900 {
+  background: linear-gradient(180deg, #0f2818 0%, #1a3a24 50%, #0f2818 100%) !important;
+}
+
+/* Christmas cards */
+.christmas .bg-white {
+  background: linear-gradient(135deg, #fffafa 0%, #f0f8f0 100%) !important;
+  border: 2px solid #c41e3a20 !important;
+}
+
+.christmas.dark .dark\:bg-gray-800 {
+  background: linear-gradient(135deg, #1f3a28 0%, #2a4a35 100%) !important;
+  border: 2px solid #c41e3a40 !important;
+}
+
+/* Christmas primary colors - make buttons festive */
+.christmas .bg-primary-600,
+.christmas .bg-primary-500 {
+  background: linear-gradient(135deg, #c41e3a 0%, #a01830 100%) !important;
+}
+
+.christmas .bg-primary-600:hover,
+.christmas .bg-primary-500:hover {
+  background: linear-gradient(135deg, #a01830 0%, #801020 100%) !important;
+}
+
+.christmas .text-primary-600,
+.christmas .text-primary-500 {
+  color: #c41e3a !important;
+}
+
+.christmas.dark .dark\:text-primary-400 {
+  color: #ff6b6b !important;
+}
+
+/* Christmas navbar */
+.christmas nav,
+.christmas .bg-white.border-b {
+  background: linear-gradient(90deg, #c41e3a 0%, #228b22 50%, #c41e3a 100%) !important;
+  border-bottom: 3px solid #ffd700 !important;
+}
+
+.christmas nav *,
+.christmas .bg-white.border-b * {
+  color: white !important;
+}
+
+/* Christmas sidebar */
+.christmas .lg\:pl-64 aside,
+.christmas aside.fixed {
+  background: linear-gradient(180deg, #1a472a 0%, #228b22 100%) !important;
+}
+
+.christmas aside * {
+  color: #fffafa !important;
+}
+
+.christmas aside .bg-primary-50,
+.christmas aside .dark\:bg-primary-900\/20 {
+  background: #c41e3a40 !important;
+}
+
+/* Snowflakes animation */
+@keyframes snowfall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0.3;
+  }
+}
+
+.snowflake {
+  position: fixed;
+  top: -10px;
+  color: white;
+  font-size: 1.5rem;
+  pointer-events: none;
+  z-index: 9999;
+  animation: snowfall linear infinite;
+  text-shadow: 0 0 5px rgba(255,255,255,0.8);
+}
+
+/* Christmas decorations on cards */
+.christmas .rounded-xl::before {
+  content: '🎄';
+  position: absolute;
+  top: -8px;
+  right: 10px;
+  font-size: 1rem;
+  z-index: 10;
+}
+
+/* Christmas badge styling */
+.christmas .bg-green-100 {
+  background: linear-gradient(135deg, #228b22 0%, #2d5a3d 100%) !important;
+  color: white !important;
+}
+
+.christmas .bg-red-100 {
+  background: linear-gradient(135deg, #c41e3a 0%, #a01830 100%) !important;
+  color: white !important;
+}
+
+/* Festive glow effect */
+.christmas .shadow-sm,
+.christmas .shadow {
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3), 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Christmas toggle icon area */
+.christmas .rounded-full.bg-primary-100 {
+  background: linear-gradient(135deg, #c41e3a30 0%, #228b2230 100%) !important;
+}
+
+/* Candy cane border for inputs */
+.christmas input:focus,
+.christmas textarea:focus,
+.christmas select:focus {
+  border-color: #c41e3a !important;
+  box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.2) !important;
+}
+
+/* Christmas bottom nav */
+.christmas .fixed.bottom-0 {
+  background: linear-gradient(90deg, #c41e3a 0%, #228b22 50%, #c41e3a 100%) !important;
+  border-top: 3px solid #ffd700 !important;
+}
+
+.christmas .fixed.bottom-0 * {
+  color: #fffafa !important;
+}
+
+/* Twinkling lights effect for headers */
+@keyframes twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.christmas h1::after {
+  content: ' 🎅';
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+.christmas h2::before {
+  content: '❄️ ';
+  font-size: 0.8em;
+}

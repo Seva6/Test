@@ -19,6 +19,7 @@ import Settings from './pages/Settings'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import Spinner from './components/common/Spinner'
+import AIAssistant from './components/common/AIAssistant'
 
 function App() {
   const { user, loading } = useAuth()
@@ -81,6 +82,9 @@ function App() {
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      
+      {/* AI Assistant - shows on all pages when logged in */}
+      {user && <AIAssistant />}
     </>
   )
 }

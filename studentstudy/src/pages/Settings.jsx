@@ -5,12 +5,12 @@ import Card from '../components/common/Card'
 import Toggle from '../components/common/Toggle'
 import Button from '../components/common/Button'
 import Input from '../components/common/Input'
-import { User, Moon, Bell, Shield, LogOut } from 'lucide-react'
+import { User, Moon, Bell, Shield, LogOut, Snowflake } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const Settings = () => {
   const { userData, updateUserData, logout } = useAuth()
-  const { darkMode, toggleDarkMode } = useTheme()
+  const { darkMode, toggleDarkMode, christmasMode, toggleChristmasMode } = useTheme()
   const [loading, setLoading] = useState(false)
   const [profile, setProfile] = useState({
     fullName: userData?.fullName || '',
@@ -112,12 +112,28 @@ const Settings = () => {
           <h2 className="font-semibold text-gray-900 dark:text-white">Appearance</h2>
         </div>
 
-        <Toggle
-          label="Dark Mode"
-          description="Use dark theme across the app"
-          enabled={darkMode}
-          onChange={toggleDarkMode}
-        />
+        <div className="space-y-4">
+          <Toggle
+            label="Dark Mode"
+            description="Use dark theme across the app"
+            enabled={darkMode}
+            onChange={toggleDarkMode}
+          />
+          
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <Toggle
+              label="🎄 Christmas Mode"
+              description="Enable festive holiday theme with snow and decorations!"
+              enabled={christmasMode}
+              onChange={toggleChristmasMode}
+            />
+            {christmasMode && (
+              <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
+                <span>❄️</span> Ho ho ho! Enjoy the holiday spirit! <span>🎅</span>
+              </p>
+            )}
+          </div>
+        </div>
       </Card>
 
       {/* Notifications Section */}
@@ -169,7 +185,9 @@ const Settings = () => {
       {/* App Info */}
       <div className="text-center text-sm text-gray-400 dark:text-gray-500 py-4">
         <p>StudentStudy v1.0.0</p>
-        <p className="mt-1">Made with ❤️ for students</p>
+        <p className="mt-1">
+          {christmasMode ? '🎄 Happy Holidays! 🎅' : 'Made with ❤️ for students'}
+        </p>
       </div>
     </div>
   )
